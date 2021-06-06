@@ -5,6 +5,7 @@ import android.animation.ObjectAnimator
 import android.os.Build
 import android.os.Bundle
 import android.view.View
+import android.view.ViewTreeObserver
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -23,9 +24,18 @@ class MainActivity : AppCompatActivity() {
 
         // Wait
         val content: View = findViewById(android.R.id.content)
-        content.viewTreeObserver.addOnPreDrawListener {
-            viewModel.isReady
-        }
+        content.viewTreeObserver.addOnPreDrawListener(
+            object : ViewTreeObserver.OnPreDrawListener {
+                override fun onPreDraw(): Boolean {
+                    return if (viewModel.isReady) {
+                        content.viewTreeObserver.removeOnPreDrawListener(this)
+                        true
+                    } else {
+                        false
+                    }
+                }
+            }
+        )
 
         // Exit Animation
         splashScreen.setOnExitAnimationListener { splashScreenView ->
